@@ -8,7 +8,6 @@ class Chef::Recipe
   include OssecCore
 end
 
-
 package "ossec-hids-server"
 
 service "ossec-server" do
@@ -25,21 +24,17 @@ ossec_agents = search(:node,
                       "AND chef_environment:#{node.chef_environment}")
 
 # resolve searches in server rules
-ossec_hostname_search()
+ossec_hostname_search
 
 # resolve email_alerts location searches
-ossec_event_location_search()
+ossec_event_location_search
 
 # initialize the agent hash on the first run
-if node[:ossec][:agents].nil?
-  node.set[:ossec][:agents] = {}
-end
+node.set[:ossec][:agents] = {} if node[:ossec][:agents].nil?
 
 ossec_agents.each do |agent|
   # don't process thy self
-  if agent.ipaddress == node.ipaddress
-    next
-  end
+  next if agent.ipaddress == node.ipaddress
 
   agent_hash = ossec_agent_create_parameters(agent, node)
 
@@ -79,7 +74,7 @@ ossec_agents.each do |agent|
   if ossec_agent_needs_rid?(agent_hash[:id], agent)
     ruby_block "ossec queue rid" do
       block do
-        if File.exists?("/var/ossec/queue/rids/#{agent_hash[:id]}")
+        if File.exist?("/var/ossec/queue/rids/#{agent_hash[:id]}")
           File.delete("/var/ossec/queue/rids/#{agent_hash[:id]}")
           Chef::Log.info("OSSEC: deleted queue for agent '#{agent_hash[:id]}'")
         else
@@ -98,12 +93,12 @@ ossec_agents.each do |agent|
     if ossec_agent_is_zombie?(agent_hash[:id])
       node.set[:ossec][:agents][agent_hash[:id]][:status] = "zombie"
       # if the agent is a zombie, perform a rid of its queue on the next run
-      Chef::Log.info("OSSEC: agent #{agent_hash[:id]} is a zombie. " +
+      Chef::Log.info("OSSEC: agent #{agent_hash[:id]} is a zombie. " \
                      "Request queue deletion")
       node.set[:ossec][:agents][agent_hash[:id]][:rid] = "todo"
     else
       node.set[:ossec][:agents][agent_hash[:id]][:status] = "disconnected"
-      Chef::Log.info("OSSEC: agent #{agent_hash[:id]} connection failed. " +
+      Chef::Log.info("OSSEC: agent #{agent_hash[:id]} connection failed. " \
                      "Performing restart")
       cmd = Chef::ShellOut.new("/var/ossec/bin/agent_control -R #{agent_hash[:id]}")
       cmd_ret = cmd.run_command
@@ -114,17 +109,15 @@ end
 # Remove the attributes of an agent from the ossec server if the agent doesn't
 # exist on Chef and the last keep_alive is more than 7 days old
 node[:ossec][:agents].each do |agent_id, params|
-  if params[:status].eql?('key_exists')
-    next
-  end
+  next if params[:status].eql?('key_exists')
 
-  agent = ossec_agents.select{ |n| (n[:ossec][:agents].has_key?(agent_id) \
+  agent = ossec_agents.find do |n| (
+
+            n[:ossec][:agents].key?(agent_id) \
                                     && n[:ossec][:agent][:enable])
-                              }.first
-
-  if not agent.nil?
-    next
   end
+
+  next if not agent.nil?
   if ossec_agent_should_be_removed?(agent_id)
     Chef::Log.info("OSSEC: Removing old agent '#{agent_id}' - '#{params[:name]}'")
     node[:ossec][:agents].delete(agent_id)

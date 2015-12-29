@@ -2,5 +2,4 @@
 # Cookbook Name:: ossec
 # Recipe:: default
 #
-include_recipe "ossec::agent"
-
+include_recipe 'ossec::agent'

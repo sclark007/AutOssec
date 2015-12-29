@@ -3,19 +3,16 @@
 # and role specific configuration for the node
 # get a key from the ossec-server if there's one
 
-if not node['lsb']['codename'].eql?('lucid')
-  return true
-end
+return true unless node['lsb']['codename'].eql?('lucid')
 
 class Chef::Recipe
   include OssecCore
 end
 
-
 # Run this recipe if the node is an agent. Since the ossec::agent recipe is
 # added to the base role, ossec-servers will run it as well, making this check
 # necessary
-if not node[:ossec][:agent][:enable]
+unless node[:ossec][:agent][:enable]
   # return will exit this recipe
   # and continue the chef provisioning
   Chef::Log.info("OSSEC: agent is not enabled on this node")
@@ -65,8 +62,8 @@ end
 # Get the IP of the ossec server
 ossec_server_ip = ossec_server[:network][:lanip] || ossec_server.ipaddress
 # Expand the local syslog files searches from the node attributes
-ossec_set_local_syslog_file_ignore_flags!()
-ossec_set_local_file_ignore_flags!()
+ossec_set_local_syslog_file_ignore_flags!
+ossec_set_local_file_ignore_flags!
 template "/var/ossec/etc/ossec.conf" do
   source "ossec-agent.conf.erb"
   owner "ossec"
@@ -99,8 +96,7 @@ ruby_block "set-rid-flag" do
 end
 
 # unset rid flag if necessary, check that at every run
-if node[:ossec][:agents][agent_hash[:id]][:rid].eql?("todo") \
-   and ossec_server[:ossec][:agents][agent_hash[:id]][:rid].eql?("done")
+if node[:ossec][:agents][agent_hash[:id]][:rid].eql?("todo") \ && ossec_server[:ossec][:agents][agent_hash[:id]][:rid].eql?("done")
   ruby_block "unset rid flag" do
     block do
       node.set[:ossec][:agents][agent_hash[:id]][:rid] = "none"
