@@ -9,14 +9,12 @@ module OssecCore
         params[:body].each do |key, value|
           if key.eql?('hostname_search')
             hosts_list = search(:node,
-                                "(#{value}) AND roles:ossec-agent "\
-                                " AND chef_environment:#{node.chef_environment}"
+                                "(#{value}) AND roles:ossec-agent AND chef_environment:#{node.chef_environment}"
                                ).map {|n| n.hostname}
             if hosts_list.empty?
               # search didn't return anything
               # store a dummy value in the attributes
-              Chef::Log.info("OSSEC: Hostname search returned empty result. " \
-                             "'#{value}'")
+              Chef::Log.info("OSSEC: Hostname search returned empty result. '#{value}'")
               params[:body][:hostname] = "invalid-search-returned-empty-result"
             else
               # store in the node params but discard the last char
@@ -33,8 +31,7 @@ module OssecCore
     node[:ossec][:email_alerts].each do|recipient, params|
       if params.key?('event_location_search')
         dest = search(:node,
-                      "(#{params[:event_location_search]}) " \
-                      "AND chef_environment:#{node.chef_environment}"
+                      "(#{params[:event_location_search]}) AND chef_environment:#{node.chef_environment}"
                      ).map {|n| n.hostname}
         node.default[:ossec][:email_alerts][recipient][:resolved_search] = dest
       end
@@ -47,8 +44,7 @@ module OssecCore
     unless node[:ossec][:local_syslog_files].nil?
       node[:ossec][:local_syslog_files].each do |logfile, params|
         locations = search(:node,
-                           "(#{params[:apply_to]}) " \
-                           "AND chef_environment:#{node.chef_environment}"
+                           "(#{params[:apply_to]}) AND chef_environment:#{node.chef_environment}"
                           ).map {|n| n.ipaddress}
         if locations.include?(node.ipaddress)
           node.default[:ossec][:local_syslog_files][logfile][:use_here] = "true"
@@ -65,8 +61,7 @@ module OssecCore
     unless node[:ossec][:syscheck][:local_ignore].nil?
       node[:ossec][:syscheck][:local_ignore].each do |file, params|
         locations = search(:node,
-                           "(#{params[:apply_to]}) " \
-                           "AND chef_environment:#{node.chef_environment}"
+                           "(#{params[:apply_to]}) AND chef_environment:#{node.chef_environment}"
                           ).map {|n| n.ipaddress}
         if locations.include?(node.ipaddress)
           node.default[:ossec][:syscheck][:local_ignore][file][:use_here] = "true"
@@ -158,19 +153,13 @@ module OssecCore
         if agent_srv_data[:ip].eql?(agent_hash[:ip])
           return true
         else
-          Chef::Log.info("OSSEC: agent ip mismatch. " \
-                         "server has '#{agent_srv_data[:ip]}' " \
-                         "agent has '#{agent_hash[:ip]}'")
+          Chef::Log.info("OSSEC: agent ip mismatch. server has '#{agent_srv_data[:ip]}' agent has '#{agent_hash[:ip]}'")
         end
       else
-        Chef::Log.info("OSSEC: agent name mismatch. " \
-                       "server has '#{agent_srv_data[:name]}' " \
-                       "agent has '#{agent_hash[:name]}'")
+        Chef::Log.info("OSSEC: agent name mismatch. server has '#{agent_srv_data[:name]}' agent has '#{agent_hash[:name]}'")
       end
     else
-      Chef::Log.info("OSSEC: agent name '#{agent_hash[:name]}' " \
-                     " ip '#{agent_hash[:ip]}'" \
-                     " configuration not found on server.")
+      Chef::Log.info("OSSEC: agent name '#{agent_hash[:name]}' ip '#{agent_hash[:ip]}'configuration not found on server.")
     end
     false
   end
@@ -220,7 +209,7 @@ module OssecCore
   def ossec_agent_needs_rid?(id, agent)
     # Check if the agent queue needs to be removed, either because the server
     # said so, or because the agent asked for it
-    if agent[:ossec][:agents][id][:rid].eql?("todo") \ || node[:ossec][:agents][id][:rid].eql?("todo")
+    if agent[:ossec][:agents][id][:rid].eql?("todo") || node[:ossec][:agents][id][:rid].eql?("todo")
       return true
     else
       return false

@@ -6,7 +6,11 @@ provisioner:
   name: chef_zero
 
 platforms:
-  - name: centos-7.1
+  - name: packer-centos-7.1
+    driver:
+      box: packer-centos-7.1
+      vm_hostname: dev-centos-71.neustar.com
+
 
 suites:
   - name: default

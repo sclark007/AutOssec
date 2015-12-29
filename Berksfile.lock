@@ -1,0 +1,10 @@
+DEPENDENCIES
+  autossec
+    path: .
+    metadata: true
+  postfix
+
+GRAPH
+  autossec (1.0.0)
+    postfix (>= 0.0.0)
+  postfix (3.7.0)
