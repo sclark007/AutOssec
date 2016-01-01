@@ -1,0 +1,163 @@
+{
+  "name": "rhel-ossec-agent",
+  "description": "OSSEC Agent",
+  "chef_type": "role",
+  "json_class": "Chef::Role",
+  "run_list": [
+    "recipe[yum-atomic]",
+    "recipe[autossec::agent]"
+  ],
+  "default_attributes": {
+    "ossec" : {
+      "client" : {
+        "service_name" : "ossec-hids-client"
+      },
+      "syscheck" : {
+        "frequency" : "7200",
+        "alert_new_files" : "yes",
+        "auto_ignore" : "no",
+        "directories" : {
+          "/bin" : {
+            "report_changes" : "no",
+            "realtime" : "yes"
+          },
+           "/boot" : {
+            "report_changes" : "no",
+            "realtime" : "no"
+          },
+          "/etc" : {
+            "report_changes" : "yes",
+            "realtime" : "no"
+          },
+          "/lib/lsb" : {
+            "report_changes" : "no",
+            "realtime" : "yes"
+          },
+          "/lib/modules" : {
+            "report_changes" : "no",
+            "realtime" : "yes"
+          },
+          "/lib/plymouth" : {
+            "report_changes" : "no",
+            "realtime" : "yes"
+          },
+          "/lib/security" : {
+            "report_changes" : "no",
+            "realtime" : "yes"
+          },
+          "/lib/terminfo" : {
+            "report_changes" : "no",
+            "realtime" : "yes"
+          },
+          "/lib/ufw" : {
+            "report_changes" : "no",
+            "realtime" : "yes"
+          },
+          "/lib/xtables" : {
+            "report_changes" : "no",
+            "realtime" : "no"
+          },
+          "/media" : {
+            "report_changes" : "no",
+            "realtime" : "no"
+          },
+          "/opt" : {
+            "report_changes" : "no",
+            "realtime" : "no"
+          },
+          "/root" : {
+            "report_changes" : "yes",
+            "realtime" : "no"
+          },
+          "/srv" : {
+            "report_changes" : "no",
+            "realtime" : "no"
+          },
+          "/sbin" : {
+            "report_changes" : "no",
+            "realtime" : "yes"
+          },
+          "/usr/" : {
+            "report_changes" : "yes",
+            "realtime" : "yes"
+          },
+          "/tmp" : {
+            "report_changes" : "no",
+            "realtime" : "no"
+          }
+        },
+        "ignore" : [
+          "/etc/openvpn/openvpn-status.log",
+          "/etc/motd",
+          "/etc/blkid.tab",
+          "/etc/mtab",
+          "/etc/mail/statistics",
+          "/etc/random-seed",
+          "/etc/adjtime",
+          "/etc/prelink.cache",
+          "/root/.bash_history"
+        ],
+        "local_ignore" : {
+          "^/opt/graphite/storage/" : {
+            "apply_to" : "roles:graphite-server OR roles:statsd-server",
+            "type" : "sregex"
+          },
+          "^/usr/lib/elasticsearch" : {
+            "apply_to" : "roles:elastic-search-cluster",
+            "type" : "sregex"
+          },
+          "^/etc/chef/cache/checksums/" : {
+            "apply_to" : "roles:chef-client",
+            "type" : "sregex"
+          },
+          "^/srv/rsyslog/" : {
+            "apply_to" : "roles:rsyslog-server",
+            "type" : "sregex"
+          },
+          "^/etc/djbdns/public-dnscache/supervise/|^/etc/djbdns/tinydns-internal/supervise/|^/etc/djbdns/public-dnscache/log|^/etc/djbdns/tinydns-internal/log|^/etc/djbdns/tinydns-internal/root/data" : {
+            "apply_to" : "roles:djbdns-server",
+            "type" : "sregex"
+          }
+        }
+      },
+      "syslog_files" : [
+        "/var/log/messages",
+        "/var/log/audit/audit.log",
+        "/var/log/secure",
+        "/var/log/maillog",
+        "/var/log/cron",
+        "/var/log/chef/client.log"
+      ],
+      "local_syslog_files" : {
+        "/var/log/supervisor/supervisor.log" : {
+          "apply_to" : "supervisor:*",
+          "log_format" : "syslog"
+        },
+        "/var/log/rabbitmq/rabbit1.log" : {
+          "apply_to" : "recipes:rabbitmq",
+          "log_format" : "multi-line:3"
+        },
+        "/var/log/nginx/access.log" : {
+          "apply_to" : "nginx:*",
+          "log_format" : "syslog"
+        },
+        "/var/log/nginx/error.log" : {
+          "apply_to" : "nginx:*",
+          "log_format" : "syslog"
+        },
+        "/var/log/nagios3/nagios.log" : {
+          "apply_to" : "roles:nagios-server",
+          "log_format" : "syslog"
+        },
+        "/var/log/nagios3/apache_access.log" : {
+          "apply_to" : "roles:nagios-server",
+          "log_format" : "syslog"
+        },
+        "/var/log/nagios3/apache_error.log" : {
+          "apply_to" : "roles:nagios-server",
+          "log_format" : "syslog"
+        }
+    }
+  }
+}
+}

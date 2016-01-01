@@ -6,18 +6,19 @@ provisioner:
   name: chef_zero
 
 platforms:
-  - name: packer-centos-7.1
-    driver:
-      box: packer-centos-7.1
-      vm_hostname: dev-centos-71.neustar.com
+  - name: ubuntu-14.04
+  - name: centos-6.7
+  - name: centos-7.2
 
 
 suites:
-  - name: default
+  - name: rhel-agent
     run_list:
-      - recipe[autossec::default]
+      - role[rhel-ossec-agent]
+    excludes: ["ubuntu-14.04"]
     attributes:
-  - name: server
+  - name: rhel-server
     run_list:
-      - recipe[autossec::server]
+      - role[rhel-ossec-server]
+    excludes: ["ubuntu-14.04"]
     attributes:

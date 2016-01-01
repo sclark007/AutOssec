@@ -10,6 +10,11 @@
 # are doing. Again, look first at ossec.conf
 # for most of the things you want to change.
 
+## turning off geoip
+maild.geoip=1
+
+## missing 
+logcollector.remote_commands=0
 
 # Analysisd default rule timeframe.
 analysisd.default_timeframe=<%= node[:ossec][:internal][:analysisd][:default_timeframe] %>

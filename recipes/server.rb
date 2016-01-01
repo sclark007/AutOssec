@@ -10,17 +10,9 @@ end
 
 package 'ossec-hids-server'
 
-service 'ossec-server' do
-  provider Chef::Provider::Service::Init
-  service_name node[:ossec][:server][:service_name]
-  supports :start => true, :stop => true, :restart => true, :status => true
-  action [:start]
-  only_if 'test -e /var/ossec/etc/ossec.conf'
-end
-
 # Get all the agents at once, more efficient
 ossec_agents = search(:node,
-                      "roles:ossec-agent AND chef_environment:'#{node.chef_environment}'" )
+                      "roles:ossec-agent AND chef_environment:'#{node.chef_environment}'")
 
 # resolve searches in server rules
 ossec_hostname_search
@@ -81,7 +73,7 @@ ossec_agents.each do |agent|
         end
         node.set[:ossec][:agents][agent_hash[:id]][:rid] = 'done'
       end
-      notifies :restart, 'service[ossec-server]'
+      notifies :restart, 'service[ossec-hids]'
     end
     # done with this agent, go to the next one
     next
@@ -131,13 +123,13 @@ end
 template '/var/ossec/rules/local_rules.xml' do
   owner 'root'
   group 'root'
-  notifies :restart, 'service[ossec-server]'
+  notifies :restart, 'service[ossec-hids]'
 end
 
 template '/var/ossec/etc/local_decoder.xml' do
   owner 'root'
   group 'root'
-  notifies :restart, 'service[ossec-server]'
+  notifies :restart, 'service[ossec-hids]'
 end
 
 template '/var/ossec/etc/ossec.conf' do
@@ -145,12 +137,20 @@ template '/var/ossec/etc/ossec.conf' do
   owner 'ossec'
   group 'ossec'
   variables(:ossec_agents => ossec_agents)
-  notifies :restart, 'service[ossec-server]'
+  notifies :restart, 'service[ossec-hids]'
 end
 
 template '/var/ossec/etc/internal_options.conf' do
   mode 0444
   owner 'root'
   group 'root'
-  notifies :restart, 'service[ossec-server]'
+  notifies :restart, 'service[ossec-hids]'
+end
+
+service 'ossec-hids' do
+  # provider Chef::Provider::Service::Init
+  # service_name node[:ossec][:server][:service_name]
+  supports :start => true, :stop => true, :restart => true, :status => true
+  action [:start]
+  only_if 'test -e /var/ossec/etc/ossec.conf'
 end

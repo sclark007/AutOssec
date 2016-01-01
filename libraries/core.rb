@@ -10,12 +10,12 @@ module OssecCore
           if key.eql?('hostname_search')
             hosts_list = search(:node,
                                 "(#{value}) AND roles:ossec-agent AND chef_environment:#{node.chef_environment}"
-                               ).map {|n| n.hostname}
+                               ).map(&:hostname)
             if hosts_list.empty?
               # search didn't return anything
               # store a dummy value in the attributes
               Chef::Log.info("OSSEC: Hostname search returned empty result. '#{value}'")
-              params[:body][:hostname] = "invalid-search-returned-empty-result"
+              params[:body][:hostname] = 'invalid-search-returned-empty-result'
             else
               # store in the node params but discard the last char
               params[:body][:hostname] = hosts_list.join('|')
@@ -32,7 +32,7 @@ module OssecCore
       if params.key?('event_location_search')
         dest = search(:node,
                       "(#{params[:event_location_search]}) AND chef_environment:#{node.chef_environment}"
-                     ).map {|n| n.hostname}
+                     ).map(&:hostname)
         node.default[:ossec][:email_alerts][recipient][:resolved_search] = dest
       end
     end
@@ -45,11 +45,11 @@ module OssecCore
       node[:ossec][:local_syslog_files].each do |logfile, params|
         locations = search(:node,
                            "(#{params[:apply_to]}) AND chef_environment:#{node.chef_environment}"
-                          ).map {|n| n.ipaddress}
+                          ).map(&:ipaddress)
         if locations.include?(node.ipaddress)
-          node.default[:ossec][:local_syslog_files][logfile][:use_here] = "true"
+          node.default[:ossec][:local_syslog_files][logfile][:use_here] = 'true'
         else
-          node.default[:ossec][:local_syslog_files][logfile][:use_here] = "false"
+          node.default[:ossec][:local_syslog_files][logfile][:use_here] = 'false'
         end
       end
     end
@@ -62,11 +62,11 @@ module OssecCore
       node[:ossec][:syscheck][:local_ignore].each do |file, params|
         locations = search(:node,
                            "(#{params[:apply_to]}) AND chef_environment:#{node.chef_environment}"
-                          ).map {|n| n.ipaddress}
+                          ).map(&:ipaddress)
         if locations.include?(node.ipaddress)
-          node.default[:ossec][:syscheck][:local_ignore][file][:use_here] = "true"
+          node.default[:ossec][:syscheck][:local_ignore][file][:use_here] = 'true'
         else
-          node.default[:ossec][:syscheck][:local_ignore][file][:use_here] = "false"
+          node.default[:ossec][:syscheck][:local_ignore][file][:use_here] = 'false'
         end
       end
     end
@@ -82,20 +82,20 @@ module OssecCore
     # Ossec limits the agents name length to 32 characters, so to avoid
     # names collisions, we concatenate the agent_ip with the first characters
     # of the hostname
-    name = agent_hash[:ip] + "_" + agent[:hostname]
+    name = agent_hash[:ip] + '_' + agent[:hostname]
     agent_hash[:name] = name[0, 31]
 
     # ossec agent id is an integer used to identify an agent. we force that ID
     # to be the IP address without the dots (10.1.2.3 becomes 10123)
-    agent_hash[:id] = agent_hash[:ip].gsub(".", "")
+    agent_hash[:id] = agent_hash[:ip].gsub('.', '')
 
-    agent_hash[:key] = "undef"
+    agent_hash[:key] = 'undef'
     if server[:ossec][:agents].key?(agent_hash[:id])
       if server[:ossec][:agents][agent_hash[:id]].key?('key')
         agent_hash[:key] = server[:ossec][:agents][agent_hash[:id]][:key]
       end
     end
-    agent_hash[:rid] = "none"
+    agent_hash[:rid] = 'none'
 
     agent_hash
   end
@@ -165,20 +165,20 @@ module OssecCore
   end
 
   def ossec_agent_is_active?(id)
-    if File.exist?("/var/ossec/bin/agent_control")
+    if File.exist?('/var/ossec/bin/agent_control')
       cmd = Chef::ShellOut.new("/var/ossec/bin/agent_control -s -i #{id}")
       cmd_ret = cmd.run_command
-      status = cmd.stdout.split(",")
-      return true if status[3] && status[3].eql?("Active")
+      status = cmd.stdout.split(',')
+      return true if status[3] && status[3].eql?('Active')
     end
     false
   end
 
   def ossec_agent_is_zombie?(id)
-    if File.exist?("/var/ossec/bin/agent_control")
+    if File.exist?('/var/ossec/bin/agent_control')
       cmd = Chef::ShellOut.new("/var/ossec/bin/agent_control -s -i #{id}")
       cmd_ret = cmd.run_command
-      status = cmd.stdout.split(",")
+      status = cmd.stdout.split(',')
       if not status[6] || status[3] =~ /(Never connected|)/
         return true
       elsif status[6] !~ /Unknown/
@@ -191,10 +191,10 @@ module OssecCore
   end
 
   def ossec_agent_should_be_removed?(id)
-    if File.exist?("/var/ossec/bin/agent_control")
+    if File.exist?('/var/ossec/bin/agent_control')
       cmd = Chef::ShellOut.new("/var/ossec/bin/agent_control -s -i #{id}")
       cmd_ret = cmd.run_command
-      status = cmd.stdout.split(",")
+      status = cmd.stdout.split(',')
       if !status[6] || status[6] =~ /Unknown/
         return true
       else
@@ -209,7 +209,7 @@ module OssecCore
   def ossec_agent_needs_rid?(id, agent)
     # Check if the agent queue needs to be removed, either because the server
     # said so, or because the agent asked for it
-    if agent[:ossec][:agents][id][:rid].eql?("todo") || node[:ossec][:agents][id][:rid].eql?("todo")
+    if agent[:ossec][:agents][id][:rid].eql?('todo') || node[:ossec][:agents][id][:rid].eql?('todo')
       return true
     else
       return false

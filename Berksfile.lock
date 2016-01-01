@@ -3,8 +3,16 @@ DEPENDENCIES
     path: .
     metadata: true
   postfix
+  yum
+  yum-atomic
 
 GRAPH
   autossec (1.0.0)
     postfix (>= 0.0.0)
   postfix (3.7.0)
+  yum (3.8.2)
+  yum-atomic (0.1.2)
+    yum (~> 3.2)
+    yum-epel (>= 0.0.0)
+  yum-epel (0.6.5)
+    yum (~> 3.2)

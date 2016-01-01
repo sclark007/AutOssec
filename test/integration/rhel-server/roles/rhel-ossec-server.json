@@ -1,0 +1,191 @@
+{
+  "name": "rhel-ossec-server",
+  "description": "OSSEC Server",
+  "chef_type": "role",
+  "json_class": "Chef::Role",
+  "run_list": [
+    "recipe[yum-atomic]",
+    "recipe[autossec::server]"
+  ],
+  "override_attributes": {
+    "ossec": { 
+      "agent" : {
+        "enable": false 
+      }
+      }},
+  "default_attributes": {
+    "ossec": {
+      "email_notification": "yes",
+      "email_to": [ "ossec-alerts@example.net" ],
+      "email_from": "ossec-server",
+      "smtp_server": "localhost",
+      "white_list": [ "127.0.0.1","10.0.0.0/0" ],
+      "email_alerts": {
+        "ossec-alerts@example.net": {
+          "event_location_tag": "project1"
+        }
+      },
+      "decoders" : {
+        "1" : {
+          "name" : "apache-errorlog",
+          "program_name" : "^httpd|^apache2",
+          "prematch" : {
+            "parser" : "^\u0000S+ [\u0000w+\u0000s*\u0000d+ \u0000S+ \u0000d+] [\u0000S+] |^[warn] |^[notice] |^[error]"
+          }
+      }
+    },
+    "rules" : {
+      "1002" : {
+        "head" : {
+          "level" : "2",
+          "overwrite" : "yes"
+        },
+        "body" : {
+          "description" : "Unknown problem somewhere in the system.",
+          "match" : "core_dumped|failure|error|Error|attack|bad |illegal |denied|refused|unauthorized|fatal|fail|Segmentation Fault|Corrupted|Traceback|raise",
+          "options" : "alert_by_email"
+        }
+      },
+      "1003" : {
+        "head" : {
+          "level" : "6",
+          "maxsize" : "16384",
+          "overwrite" : "yes"
+        },
+        "body" : {
+          "description" : "Non standard syslog message (larger than 16kB)."
+        }
+      },
+      "100003" : {
+        "head" : {
+          "level" : "10"
+        },
+        "body" : {
+          "description" : "Successful sudo during non-business hours 6pm to 8am",
+          "if_sid" : "5402,5403",
+          "time" : "10pm - 12am"
+        }
+      },
+      "100004" : {
+        "head" : {
+          "level" : "10"
+        },
+        "body" : {
+          "description" : "Successful sudo during weekend.",
+          "if_sid" : "5402,5403",
+          "weekday" : "weekends"
+        }
+      },
+      "100005" : {
+        "head" : {
+          "level" : "0"
+        },
+        "body" : {
+          "description" : "Silencing sudo errors from accounts allowed to sudo anytime",
+          "if_sid" : "100004,100005",
+          "match" : "nagios"
+        }
+      },
+      "100006" : {
+        "head" : {
+          "level" : "0"
+        },
+        "body" : {
+          "description" : "Silencing ossec agent stop/start during business hours 8am to 6pm",
+          "if_sid" : "502,503,504",
+          "time" : "12:00-22:00",
+          "weekday" : "monday,tuesday,wednesday,thursday,friday"
+        }
+      },
+      "100007" : {
+        "head" : {
+          "level" : "8"
+        },
+        "body" : {
+          "description" : "Login outside of business hours 6pm to 8am",
+          "if_sid" : "5501",
+          "time" : "22:00-12:00"
+        }
+      },
+      "100008" : {
+        "head" : {
+          "level" : "8"
+        },
+        "body" : {
+          "description" : "Login during weekend.",
+          "if_sid" : "5501",
+          "weekday" : "weekends"
+        }
+      },
+      "100009" : {
+        "head" : {
+          "level" : "0"
+        },
+        "body" : {
+          "description" : "Ignore logins alerts for systems accounts",
+          "if_sid" : "100007,100008",
+          "match" : "ubuntu|nagios"
+        }
+      }
+    },
+      "server" : {
+        "service_name" : "ossec-hids-server"
+      },
+      "syscheck" : {
+        "frequency" : "7200",
+        "alert_new_files" : "yes",
+        "auto_ignore" : "no",
+        "directories" : {
+          "/bin" : {
+            "report_changes" : "no",
+            "realtime" : "yes"
+          },
+          "/sbin" : {
+            "report_changes" : "no",
+            "realtime" : "yes"
+          },
+          "/usr/bin" : {
+            "report_changes" : "no",
+            "realtime" : "yes"
+          },
+          "/usr/sbin" : {
+            "report_changes" : "no",
+            "realtime" : "yes"
+          },
+          "/etc" : {
+            "report_changes" : "yes",
+            "realtime" : "yes"
+          },
+          "/tmp" : {
+            "report_changes" : "yes",
+            "realtime" : "no"
+          }
+        },
+        "ignore" : [
+          "/etc/openvpn/openvpn-status.log",
+          "/etc/motd",
+          "/etc/mcollective/facts.yaml",
+          "/etc/blkid.tab",
+          "/etc/mtab",
+          "/etc/mail/statistics",
+          "/etc/random-seed",
+          "/etc/adjtime",
+          "/etc/prelink.cache",
+          "/etc/dnscache/stats",
+          "/etc/dnscache/log",
+          "/etc/dnscache2/stats",
+          "/etc/dnscache2/log",
+          "/etc/tinydns/stats",
+          "/etc/tinydns/log"
+        ]
+      },
+      "syslog_files" : [
+        "/var/log/messages",
+        "/var/log/audit/audit.log",
+        "/var/log/secure",
+        "/var/log/maillog",
+        "/var/log/cron"
+      ]
+  }
+}
+}

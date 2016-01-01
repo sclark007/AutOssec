@@ -12,7 +12,7 @@ default[:ossec][:agents] = {}
 default[:ossec][:rules] = {}
 default[:ossec][:email_alerts] = {}
 default[:ossec][:agent][:enable] = true
-default[:ossec][:server][:service_name] = 'ossec-hids-server'
+default[:ossec][:server][:service_name] = 'ossec-hids'
 default[:ossec][:client][:service_name] = 'ossec-hids-client'
 
 # internal options, you probably don't want to touch that

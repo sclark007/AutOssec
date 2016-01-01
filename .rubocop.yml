@@ -8,6 +8,7 @@ AllCops:
   Exclude:
     - vendor/**/*
     - test/**/*
+    - libraries/core.rb
 
 ClassLength:
   Enabled: false
